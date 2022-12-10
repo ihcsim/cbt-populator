@@ -1,0 +1,76 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: volumesnapshotdeltas.cbt.storage.k8s.io
+  annotations:
+    api-approved.kubernetes.io: https://github.com/kubernetes/enhancements/pull/3367
+spec:
+  group: cbt.storage.k8s.io
+  names:
+    kind: VolumeSnapshotDelta
+    listKind: VolumeSnapshotDeltaList
+    plural: volumesnapshotdeltas
+    singular: volumesnapshotdelta
+    shortNames:
+    - vsdelta
+    - vsdeltas
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: VolumeSnapshotDelta represents the deltas between two CSI
+          VolumeSnapshot resources.
+        properties:
+          apiVersion:
+            description: >
+              APIVersion defines the versioned schema of this representation of
+              an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info:
+              https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: >
+              Kind is a string value representing the REST resource this object
+              represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info:
+              https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          spec:
+            description: >
+              spec describes the desired characteristics of a
+              VolumeSnapshotDelta resource. In particular, it provides the
+              information needed to compute the deltas betweentwo CSI
+              VolumeSnapshot resources.
+            properties:
+              fromVolumeSnapshotName:
+                type: string
+              toVolumeSnapshotName:
+                type: string
+              maxSizeInBytes:
+                type: integer
+            required:
+            - tovolumeSnapshotName
+            type: object
+          status:
+            description: >
+              status describes the current state of a VolumesnapshotDelta
+              resource. In particular, it provides the result of the comparison
+              of the two VolumeSnapshotDelta resources.
+            properties:
+              entryCount:
+                type: integer
+              blockSize:
+                type: integer
+              numBytesWritten:
+                type: integer
+              message:
+                type: string
+              state:
+                type: string
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
