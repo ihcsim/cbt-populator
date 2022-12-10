@@ -6,10 +6,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ihcsim/cbt-populator/pkg/apis/cbt/v1alpha1"
+	"github.com/ihcsim/cbt-populator/pkg/apis/cbt.storage.k8s.io/v1alpha1"
 	"github.com/ihcsim/cbt-populator/pkg/csi/mock"
-	cbtclient "github.com/ihcsim/cbt-populator/pkg/generated/cbt/clientset/versioned"
-	cbtinformers "github.com/ihcsim/cbt-populator/pkg/generated/cbt/informers/externalversions"
+	cbtclient "github.com/ihcsim/cbt-populator/pkg/generated/cbt.storage.k8s.io/clientset/versioned"
+	cbtinformers "github.com/ihcsim/cbt-populator/pkg/generated/cbt.storage.k8s.io/informers/externalversions"
 	datasource "github.com/ihcsim/cbt-populator/pkg/populator/data-source"
 	snapshotclient "github.com/kubernetes-csi/external-snapshotter/client/v6/clientset/versioned"
 	snapshotinformers "github.com/kubernetes-csi/external-snapshotter/client/v6/informers/externalversions"

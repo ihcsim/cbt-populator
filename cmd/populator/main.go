@@ -8,8 +8,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/ihcsim/cbt-populator/pkg/apis/cbt/v1alpha1"
-	cbtclient "github.com/ihcsim/cbt-populator/pkg/generated/cbt/clientset/versioned"
+	cbt "github.com/ihcsim/cbt-populator/pkg/apis/cbt.storage.k8s.io"
+	"github.com/ihcsim/cbt-populator/pkg/apis/cbt.storage.k8s.io/v1alpha1"
+	cbtclient "github.com/ihcsim/cbt-populator/pkg/generated/cbt.storage.k8s.io/clientset/versioned"
 	"github.com/ihcsim/cbt-populator/pkg/populator"
 	snapshotclient "github.com/kubernetes-csi/external-snapshotter/client/v6/clientset/versioned"
 
@@ -72,8 +73,8 @@ func runAsController() {
 		metricsPath,
 		controllerNamespace,
 		prefix,
-		v1alpha1.Kind(v1alpha1.VolumeSnapshotDeltaKind),
-		v1alpha1.VersionResource(v1alpha1.VolumeSnapshotDeltaResource),
+		v1alpha1.Kind(cbt.VolumeSnapshotDeltaKind),
+		v1alpha1.VersionResource(cbt.VolumeSnapshotDeltaResource),
 		populatorMountPath,
 		populatorDevicePath,
 		populatorArgs)

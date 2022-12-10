@@ -28,7 +28,7 @@ CODEGEN_PKG=${CODEGEN_PKG:-$(cd ${SCRIPT_ROOT}; ls -d -1 ./vendor/k8s.io/code-ge
 # to use your own boilerplate text use:
 #   --go-header-file ${SCRIPT_ROOT}/hack/custom-boilerplate.go.txt
 
-for group in cbt;
+for group in cbt.storage.k8s.io;
 do
   bash ${CODEGEN_PKG}/generate-groups.sh \
     all \
