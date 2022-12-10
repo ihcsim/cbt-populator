@@ -72,8 +72,8 @@ func runAsController() {
 		metricsPath,
 		controllerNamespace,
 		prefix,
-		v1alpha1.Kind(v1alpha1.KindVolumeSnapshotDelta),
-		v1alpha1.VersionResource(v1alpha1.ResourceVolumeSnapshotDelta),
+		v1alpha1.Kind(v1alpha1.VolumeSnapshotDeltaKind),
+		v1alpha1.VersionResource(v1alpha1.VolumeSnapshotDeltaResource),
 		populatorMountPath,
 		populatorDevicePath,
 		populatorArgs)

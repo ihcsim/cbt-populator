@@ -8,6 +8,8 @@ import (
 )
 
 var (
+	GroupName = "cbt"
+
 	// SchemeGroupVersion is group version used to register these objects
 	SchemeGroupVersion = schema.GroupVersion{
 		Group:   cbt.GroupName,
@@ -17,6 +19,9 @@ var (
 	SchemeBuilder = runtime.NewSchemeBuilder(addKnownTypes)
 
 	AddToScheme = SchemeBuilder.AddToScheme
+
+	VolumeSnapshotDeltaKind     = "VolumeSnapshotDelta"
+	VolumeSnapshotDeltaResource = "volumesnapshotdeltas"
 )
 
 // Adds the list of known types to the given scheme.
@@ -35,13 +40,13 @@ func Resource(resource string) schema.GroupResource {
 	return SchemeGroupVersion.WithResource(resource).GroupResource()
 }
 
-// func Kind(kind string) schema.GroupKind {
-// return schema.GroupKind{
-// Group: "cbt",
-// Kind:  kind,
-// }
-// }
+func Kind(kind string) schema.GroupKind {
+	return schema.GroupKind{
+		Group: GroupName,
+		Kind:  kind,
+	}
+}
 
-// func VersionResource(resource string) schema.GroupVersionResource {
-// return SchemeGroupVersion.WithResource(resource)
-// }
+func VersionResource(resource string) schema.GroupVersionResource {
+	return SchemeGroupVersion.WithResource(resource)
+}
