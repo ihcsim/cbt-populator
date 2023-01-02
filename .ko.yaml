@@ -1,0 +1,10 @@
+builds:
+- id: cbt-populator
+  dir: .
+  main: ./cmd/populator
+  env:
+  - CGO_ENABLED=0
+
+defaultPlatforms:
+- linux/amd64
+- linux/arm64
