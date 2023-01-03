@@ -1,7 +1,12 @@
 builds:
+- id: cbt-controller
+  dir: .
+  main: ./cmd/cbt-controller
+  env:
+  - CGO_ENABLED=0
 - id: cbt-populator
   dir: .
-  main: ./cmd/populator
+  main: ./cmd/cbt-populator
   env:
   - CGO_ENABLED=0
 

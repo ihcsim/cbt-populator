@@ -1,7 +1,8 @@
 LOCAL_REGISTRY = ko.local
 REMOTE_REGISTRY ?= isim
 
-GO_MAIN_PATH ?= ./cmd/populator
+CONTROLLER_MAIN_PATH ?= ./cmd/cbt-controller
+POPULATOR_MAIN_PATH := ./cmd/cbt-populator
 
 build-%:
 	if [ "$*" = "remote" ]; then \
@@ -9,8 +10,10 @@ build-%:
 	else  \
     export KO_DOCKER_REPO=$(LOCAL_REGISTRY) ;\
 	fi && \
-	ko build $(GO_MAIN_PATH) \
+	ko build $(POPULATOR_MAIN_PATH) $(CONTROLLER_MAIN_PATH) \
+		--platform=linux/amd64,linux/arm64 \
 		--base-import-paths
+
 build: build-local
 
 .PHONY: test
