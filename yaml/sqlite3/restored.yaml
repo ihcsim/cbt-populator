@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sqlite3-data-sqlite3-0-restored
+  namespace: snapshot-demo
+  labels:
+    app.kubernetes.io/name: sqlite3
+spec:
+  accessModes: ["ReadWriteOnce"]
+  dataSourceRef:
+    # name: sqlite-data-snapshots-delta
+    # kind: VolumeSnapshotDelta
+    # apiGroup: cbt.storage.k8s.io
+    name: snapshot-sqlite3-data
+    kind: VolumeSnapshot
+    apiGroup: snapshot.storage.k8s.io
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: ebs-sc
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sqlite3-restored
+  namespace: snapshot-demo
+  labels:
+    app.kubernetes.io/name: sqlite3
+spec:
+  containers:
+  - name: sqlite3
+    image: keinos/sqlite3:3.40.0
+    command:
+    - sh
+    - -c
+    - |
+      sqlite3 /data/sqlite3/demo.db -header -column 'SELECT rowid, * FROM demo;'
+      sleep 4h
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: "2"
+        memory: 2Gi
+    volumeMounts:
+    - name: sqlite3-data
+      mountPath: /data/sqlite3
+  volumes:
+  - name: sqlite3-data
+    persistentVolumeClaim:
+      claimName: sqlite3-data-sqlite3-0-restored

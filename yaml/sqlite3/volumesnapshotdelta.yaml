@@ -1,0 +1,11 @@
+apiVersion: cbt.storage.k8s.io/v1alpha1
+kind: VolumeSnapshotDelta
+metadata:
+  name: sqlite-data-snapshots-delta
+  namespace: snapshot-demo
+  labels:
+    app.kubernetes.io/name: sqlite3
+spec:
+  fromVolumeSnapshotName: sqlite-data-4l8cb
+  toVolumeSnapshotName: sqlite-data-n68sh
+  maxSizeInBytes: 536870912

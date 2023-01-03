@@ -50,7 +50,7 @@ spec:
               maxSizeInBytes:
                 type: integer
             required:
-            - tovolumeSnapshotName
+            - toVolumeSnapshotName
             type: object
           status:
             description: >
