@@ -4,6 +4,7 @@ REMOTE_REGISTRY ?= isim
 CONTROLLER_MAIN_PATH ?= ./cmd/cbt-controller
 POPULATOR_MAIN_PATH := ./cmd/cbt-populator
 
+build: build-local
 build-%:
 	if [ "$*" = "remote" ]; then \
     export KO_DOCKER_REPO=$(REMOTE_REGISTRY) ;\
@@ -14,7 +15,14 @@ build-%:
 		--platform=linux/amd64,linux/arm64 \
 		--base-import-paths
 
-build: build-local
+resolve: resolve-local
+resolve-%:
+	if [ "$*" = "remote" ]; then \
+    export KO_DOCKER_REPO=$(REMOTE_REGISTRY) ;\
+	else  \
+    export KO_DOCKER_REPO=$(LOCAL_REGISTRY) ;\
+	fi && \
+	ko resolve --base-import-paths -f ./yaml/deploy.yaml
 
 .PHONY: test
 test:
