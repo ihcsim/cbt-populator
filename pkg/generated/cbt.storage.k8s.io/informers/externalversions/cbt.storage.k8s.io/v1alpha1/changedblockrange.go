@@ -31,59 +31,59 @@ import (
 	cache "k8s.io/client-go/tools/cache"
 )
 
-// VolumeSnapshotDeltaInformer provides access to a shared informer and lister for
-// VolumeSnapshotDeltas.
-type VolumeSnapshotDeltaInformer interface {
+// ChangedBlockRangeInformer provides access to a shared informer and lister for
+// ChangedBlockRanges.
+type ChangedBlockRangeInformer interface {
 	Informer() cache.SharedIndexInformer
-	Lister() v1alpha1.VolumeSnapshotDeltaLister
+	Lister() v1alpha1.ChangedBlockRangeLister
 }
 
-type volumeSnapshotDeltaInformer struct {
+type changedBlockRangeInformer struct {
 	factory          internalinterfaces.SharedInformerFactory
 	tweakListOptions internalinterfaces.TweakListOptionsFunc
 	namespace        string
 }
 
-// NewVolumeSnapshotDeltaInformer constructs a new informer for VolumeSnapshotDelta type.
+// NewChangedBlockRangeInformer constructs a new informer for ChangedBlockRange type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewVolumeSnapshotDeltaInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
-	return NewFilteredVolumeSnapshotDeltaInformer(client, namespace, resyncPeriod, indexers, nil)
+func NewChangedBlockRangeInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+	return NewFilteredChangedBlockRangeInformer(client, namespace, resyncPeriod, indexers, nil)
 }
 
-// NewFilteredVolumeSnapshotDeltaInformer constructs a new informer for VolumeSnapshotDelta type.
+// NewFilteredChangedBlockRangeInformer constructs a new informer for ChangedBlockRange type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredVolumeSnapshotDeltaInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+func NewFilteredChangedBlockRangeInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
 	return cache.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options v1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.CbtV1alpha1().VolumeSnapshotDeltas(namespace).List(context.TODO(), options)
+				return client.CbtV1alpha1().ChangedBlockRanges(namespace).List(context.TODO(), options)
 			},
 			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.CbtV1alpha1().VolumeSnapshotDeltas(namespace).Watch(context.TODO(), options)
+				return client.CbtV1alpha1().ChangedBlockRanges(namespace).Watch(context.TODO(), options)
 			},
 		},
-		&cbtstoragek8siov1alpha1.VolumeSnapshotDelta{},
+		&cbtstoragek8siov1alpha1.ChangedBlockRange{},
 		resyncPeriod,
 		indexers,
 	)
 }
 
-func (f *volumeSnapshotDeltaInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewFilteredVolumeSnapshotDeltaInformer(client, f.namespace, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
+func (f *changedBlockRangeInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
+	return NewFilteredChangedBlockRangeInformer(client, f.namespace, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
 }
 
-func (f *volumeSnapshotDeltaInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&cbtstoragek8siov1alpha1.VolumeSnapshotDelta{}, f.defaultInformer)
+func (f *changedBlockRangeInformer) Informer() cache.SharedIndexInformer {
+	return f.factory.InformerFor(&cbtstoragek8siov1alpha1.ChangedBlockRange{}, f.defaultInformer)
 }
 
-func (f *volumeSnapshotDeltaInformer) Lister() v1alpha1.VolumeSnapshotDeltaLister {
-	return v1alpha1.NewVolumeSnapshotDeltaLister(f.Informer().GetIndexer())
+func (f *changedBlockRangeInformer) Lister() v1alpha1.ChangedBlockRangeLister {
+	return v1alpha1.NewChangedBlockRangeLister(f.Informer().GetIndexer())
 }

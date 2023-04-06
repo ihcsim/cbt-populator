@@ -27,8 +27,8 @@ type FakeCbtV1alpha1 struct {
 	*testing.Fake
 }
 
-func (c *FakeCbtV1alpha1) VolumeSnapshotDeltas(namespace string) v1alpha1.VolumeSnapshotDeltaInterface {
-	return &FakeVolumeSnapshotDeltas{c, namespace}
+func (c *FakeCbtV1alpha1) ChangedBlockRanges(namespace string) v1alpha1.ChangedBlockRangeInterface {
+	return &FakeChangedBlockRanges{c, namespace}
 }
 
 // RESTClient returns a RESTClient that is used to communicate

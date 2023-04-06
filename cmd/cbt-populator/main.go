@@ -17,22 +17,20 @@ import (
 
 func main() {
 	klog.Info("starting populator...")
-	stop := make(chan struct{})
-	runAsPopulator(stop)
-}
 
-func runAsPopulator(stop <-chan struct{}) error {
 	var (
+		stop         = make(chan struct{})
 		kubeconfig   = flag.String("kubeconfig", "~/.kube/config", "Path to a kubeconfig. For out-of-cluster development only.")
 		k8sURL       = flag.String("k8s-url", "https://0.0.0.0:6443", "The address of the Kubernetes API server. Overrides any value in kubeconfig. For out-of-cluster development only e.g., with `kubectl proxy`.")
-		objName      = flag.String("obj-name", "", "Name of the VolumeSnapshotDelta object to use for data population")
-		objNamespace = flag.String("obj-namespace", "", "Namespace of the VolumeSnapshotDelta object")
+		objName      = flag.String("obj-name", "", "Name of the ChangedBlockRange object to use for data population")
+		objNamespace = flag.String("obj-namespace", "", "Namespace of the ChangedBlockRange object")
 		filename     = flag.String("filename", "", "Path to the file on the volume where the CBT entries will be stored")
 	)
 	flag.Parse()
 
 	if err := validateFlags(kubeconfig, k8sURL, filename, objName, objNamespace); err != nil {
-		return fmt.Errorf("flags validation failed: %w", err)
+		klog.Error(fmt.Errorf("flags validation failed: %w", err))
+		os.Exit(1)
 	}
 
 	klog.Infof("obj name=%s, obj namespace=%s", objName, objNamespace)
@@ -49,17 +47,18 @@ func runAsPopulator(stop <-chan struct{}) error {
 
 	file, err := os.Create(*filename)
 	if err != nil {
-		return err
+		klog.Error(err)
+		os.Exit(1)
 	}
 	klog.Infof("writing CBT entries to %s", file.Name)
 
 	nbr, err := io.Copy(file, populator.R)
 	if err != nil {
-		return err
+		klog.Error(err)
+		os.Exit(1)
 	}
 
 	klog.Info("number of bytes read: %d", nbr)
-	return nil
 }
 
 func validateFlags(kubeconfig, k8sURL, filename, objName, objNamespace *string) error {

@@ -23,8 +23,8 @@ import (
 
 // Interface provides access to all the informers in this group version.
 type Interface interface {
-	// VolumeSnapshotDeltas returns a VolumeSnapshotDeltaInformer.
-	VolumeSnapshotDeltas() VolumeSnapshotDeltaInformer
+	// ChangedBlockRanges returns a ChangedBlockRangeInformer.
+	ChangedBlockRanges() ChangedBlockRangeInformer
 }
 
 type version struct {
@@ -38,7 +38,7 @@ func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakList
 	return &version{factory: f, namespace: namespace, tweakListOptions: tweakListOptions}
 }
 
-// VolumeSnapshotDeltas returns a VolumeSnapshotDeltaInformer.
-func (v *version) VolumeSnapshotDeltas() VolumeSnapshotDeltaInformer {
-	return &volumeSnapshotDeltaInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
+// ChangedBlockRanges returns a ChangedBlockRangeInformer.
+func (v *version) ChangedBlockRanges() ChangedBlockRangeInformer {
+	return &changedBlockRangeInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }

@@ -18,7 +18,7 @@ import (
 )
 
 // CBTPopulator can populate a volume with CBT entries associated with a
-// VolumeSnapshotDelta object, identified by the ObjName and ObjNamespace
+// ChangedBlockRange object, identified by the ObjName and ObjNamespace
 // fields.
 type CBTPopulator struct {
 	W                       io.Writer
@@ -48,11 +48,11 @@ func New(
 
 // Run starts the CBT data population.
 func (p *CBTPopulator) Run(objName, objNamespace string) error {
-	obj, err := p.cbtInformerFactory.Cbt().V1alpha1().VolumeSnapshotDeltas().Lister().VolumeSnapshotDeltas(objNamespace).Get(objName)
+	obj, err := p.cbtInformerFactory.Cbt().V1alpha1().ChangedBlockRanges().Lister().ChangedBlockRanges(objNamespace).Get(objName)
 	if err != nil {
 		return err
 	}
-	klog.Infof("found VolumeSnapshotDelta: %s/%s", obj.GetNamespace(), obj.GetName())
+	klog.Infof("found ChangedBlockRange: %s/%s", obj.GetNamespace(), obj.GetName())
 
 	from, err := p.snapshotInformerFactory.Snapshot().V1().VolumeSnapshots().Lister().VolumeSnapshots(objNamespace).Get(
 		obj.Spec.FromVolumeSnapshotName)
@@ -121,19 +121,19 @@ func initInformerFactories(
 		sif = snapshotinformers.NewSharedInformerFactoryWithOptions(snapshotClient, resync)
 	)
 
-	cif.Cbt().V1alpha1().VolumeSnapshotDeltas().Informer().AddEventHandler(
+	cif.Cbt().V1alpha1().ChangedBlockRanges().Informer().AddEventHandler(
 		cache.ResourceEventHandlerFuncs{
 			AddFunc: func(new interface{}) {
-				obj := new.(*v1alpha1.VolumeSnapshotDelta)
-				klog.Infof("adding VolumeSnapshotDelta: %s", obj.GetName())
+				obj := new.(*v1alpha1.ChangedBlockRange)
+				klog.Infof("adding ChangedBlockRange: %s", obj.GetName())
 			},
 			UpdateFunc: func(old, new interface{}) {
-				obj := new.(*v1alpha1.VolumeSnapshotDelta)
-				klog.Infof("update VolumeSnapshotDelta: %s", obj.GetName())
+				obj := new.(*v1alpha1.ChangedBlockRange)
+				klog.Infof("update ChangedBlockRange: %s", obj.GetName())
 			},
 			DeleteFunc: func(old interface{}) {
-				obj := old.(*v1alpha1.VolumeSnapshotDelta)
-				klog.Infof("deleting VolumeSnapshotDelta: %s", obj.GetName())
+				obj := old.(*v1alpha1.ChangedBlockRange)
+				klog.Infof("deleting ChangedBlockRange: %s", obj.GetName())
 			},
 		})
 

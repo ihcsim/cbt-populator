@@ -17,10 +17,10 @@ limitations under the License.
 
 package v1alpha1
 
-// VolumeSnapshotDeltaListerExpansion allows custom methods to be added to
-// VolumeSnapshotDeltaLister.
-type VolumeSnapshotDeltaListerExpansion interface{}
+// ChangedBlockRangeListerExpansion allows custom methods to be added to
+// ChangedBlockRangeLister.
+type ChangedBlockRangeListerExpansion interface{}
 
-// VolumeSnapshotDeltaNamespaceListerExpansion allows custom methods to be added to
-// VolumeSnapshotDeltaNamespaceLister.
-type VolumeSnapshotDeltaNamespaceListerExpansion interface{}
+// ChangedBlockRangeNamespaceListerExpansion allows custom methods to be added to
+// ChangedBlockRangeNamespaceLister.
+type ChangedBlockRangeNamespaceListerExpansion interface{}

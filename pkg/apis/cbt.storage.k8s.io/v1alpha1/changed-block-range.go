@@ -6,21 +6,21 @@ import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 // +k8s:deepcopy-gen=true
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// VolumeSnapshotDelta represents a request to find the block-level deltas
-// between two volume snapshots.
-type VolumeSnapshotDelta struct {
+// ChangedBlockRange represents the range of changed blocks between two block
+// volume snapshots.
+type ChangedBlockRange struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	// Spec of the VolumeSnapshotDelta resource.
-	Spec *VolumeSnapshotDeltaSpec `json:"spec,omitempty"`
+	// Spec of the ChangedBlockRange resource.
+	Spec *ChangedBlockRangeSpec `json:"spec,omitempty"`
 
-	// Status of the VolumeSnapshotDelta resource.
-	Status *VolumeSnapshotDeltaStatus `json:"status,omitempty"`
+	// Status of the ChangedBlockRange resource.
+	Status *ChangedBlockRangeStatus `json:"status,omitempty"`
 }
 
-// VolumeSnapshotDeltaSpec defines the desired state of VolumeSnapshotDelta.
-type VolumeSnapshotDeltaSpec struct {
+// ChangedBlockRangeSpec defines the desired state of ChangedBlockRange.
+type ChangedBlockRangeSpec struct {
 	// The name of the base volume snapshot to use for comparison.
 	// If not specified, return all changed blocks.
 	// +optional
@@ -35,8 +35,8 @@ type VolumeSnapshotDeltaSpec struct {
 	MaxSizeInBytes uint64 `json:"maxSizeInbytes"`
 }
 
-// VolumeSnapshotDeltaStatus defines the observed state of VolumeSnapshotDelta.
-type VolumeSnapshotDeltaStatus struct {
+// ChangedBlockRangeStatus defines the observed state of ChangedBlockRange.
+type ChangedBlockRangeStatus struct {
 	// The number of entries found.
 	// Required.
 	EntryCount uint64 `json:"entryCount"`
@@ -63,18 +63,23 @@ type VolumeSnapshotDeltaStatus struct {
 }
 
 const (
-	VolumeSnapshotDeltaStatePending = "pending"
-	VolumeSnapshotDeltaStateReady   = "ready"
-	VolumeSnapshotDeltaStateFailed  = "failed"
+	// ChangedBlockRangeStatePending defines the 'pending' state.
+	ChangedBlockRangeStatePending = "pending"
+
+	// ChangedBlockRangeStateReady defines the 'ready' state.
+	ChangedBlockRangeStateReady = "ready"
+
+	// ChangedBlockRangeStateFailed defines the 'failed' state.
+	ChangedBlockRangeStateFailed = "failed"
 )
 
 // +k8s:deepcopy-gen=true
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// VolumeSnapshotDeltaList
-type VolumeSnapshotDeltaList struct {
+// ChangedBlockRangeList represents a list of ChangedBlockRange resources.
+type ChangedBlockRangeList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 
-	Items []VolumeSnapshotDelta `json:"items"`
+	Items []ChangedBlockRange `json:"items"`
 }

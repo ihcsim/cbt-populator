@@ -27,7 +27,7 @@ import (
 
 type CbtV1alpha1Interface interface {
 	RESTClient() rest.Interface
-	VolumeSnapshotDeltasGetter
+	ChangedBlockRangesGetter
 }
 
 // CbtV1alpha1Client is used to interact with features provided by the cbt.storage.k8s.io group.
@@ -35,8 +35,8 @@ type CbtV1alpha1Client struct {
 	restClient rest.Interface
 }
 
-func (c *CbtV1alpha1Client) VolumeSnapshotDeltas(namespace string) VolumeSnapshotDeltaInterface {
-	return newVolumeSnapshotDeltas(c, namespace)
+func (c *CbtV1alpha1Client) ChangedBlockRanges(namespace string) ChangedBlockRangeInterface {
+	return newChangedBlockRanges(c, namespace)
 }
 
 // NewForConfig creates a new CbtV1alpha1Client for the given config.

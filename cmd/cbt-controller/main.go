@@ -22,10 +22,7 @@ var (
 
 func main() {
 	klog.Info("starting controller...")
-	runAsController()
-}
 
-func runAsController() {
 	flag.StringVar(&kubeconfig, "kubeconfig", "~/.kube/config", "Path to a kubeconfig. For out-of-cluster development only.")
 	flag.StringVar(&k8sURL, "k8s-url", "https://0.0.0.0:6443", "The address of the Kubernetes API server. Overrides any value in kubeconfig. For out-of-cluster development only e.g., with `kubectl proxy`.")
 	flag.StringVar(&listenAddr, "listen-addr", ":8080", "The TCP network address for metrics and leader election health check. Empty string means the server is disabled.")
@@ -46,8 +43,8 @@ func runAsController() {
 		metricsPath,
 		populatorNamespace,
 		prefix,
-		v1alpha1.Kind(cbt.VolumeSnapshotDeltaKind),
-		v1alpha1.VersionResource(cbt.VolumeSnapshotDeltaResource),
+		v1alpha1.Kind(cbt.ChangedBlockRangeKind),
+		v1alpha1.VersionResource(cbt.ChangedBlockRangeResource),
 		populatorMountPath,
 		populatorDevicePath,
 		populatorArgs)
@@ -55,7 +52,7 @@ func runAsController() {
 
 func populatorArgs(rawBlock bool, u *unstructured.Unstructured) ([]string, error) {
 	var (
-		obj  v1alpha1.VolumeSnapshotDelta
+		obj  v1alpha1.ChangedBlockRange
 		args []string
 	)
 
