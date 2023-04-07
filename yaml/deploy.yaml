@@ -1,50 +1,8 @@
 apiVersion: v1
-kind: Namespace
-metadata:
-  name: cbt-populator
----
-apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: cbt-populator
   namespace: cbt-populator
----
-kind: ClusterRole
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: cbt-populator
-rules:
-  - apiGroups: [""]
-    resources: [persistentvolumes]
-    verbs: [get, list, watch, patch]
-  - apiGroups: [""]
-    resources: [persistentvolumeclaims]
-    verbs: [get, list, watch, patch, create, delete]
-  - apiGroups: [""]
-    resources: [pods]
-    verbs: [get, list, watch, create, delete]
-  - apiGroups: [""]
-    resources: [events]
-    verbs: [create]
-  - apiGroups: [storage.k8s.io]
-    resources: [storageclasses]
-    verbs: [get, list, watch]
-  - apiGroups: [cbt.storage.k8s.io]
-    resources: [volumesnapshotdeltas]
-    verbs: [get, list, watch]
----
-kind: ClusterRoleBinding
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: cbt-populator
-subjects:
-  - kind: ServiceAccount
-    name: cbt-populator
-    namespace: cbt-populator
-roleRef:
-  kind: ClusterRole
-  name: cbt-populator
-  apiGroup: rbac.authorization.k8s.io
 ---
 kind: Deployment
 apiVersion: apps/v1
@@ -64,9 +22,9 @@ spec:
       containers:
       - name: cbt-populator
         image: ko://github.com/ihcsim/cbt-populator/cmd/cbt-controller
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         args:
-        - --populator-name
+        - --populator-image
         - ko://github.com/ihcsim/cbt-populator/cmd/cbt-populator
         - --listen-addr
         - :8080

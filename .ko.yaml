@@ -10,6 +10,11 @@ builds:
   env:
   - CGO_ENABLED=0
 
+baseImageOverrides:
+  # workaround for 'write permission denied' error  to /data
+  # populator pod doesn't allow fsgroup overrides
+  github.com/ihcsim/cbt-populator/cmd/cbt-populator: debian:11-slim
+
 defaultPlatforms:
 - linux/amd64
 - linux/arm64

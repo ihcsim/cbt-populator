@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: cbt-debug-pod 
+  namespace: cbt-populator
+spec:
+  containers:
+  - name: data-replicator
+    image: debian:11-slim
+    command: ["sleep", "infinity"]
+    volumeMounts:
+    - mountPath: /data
+      name: data
+  volumes:
+  - name: data
+    persistentVolumeClaim:
+      claimName: prime-36bfa18d-e829-40b3-86ce-25c67f32a0b4 # replace with prime PVC name

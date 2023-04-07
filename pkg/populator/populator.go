@@ -1,19 +1,16 @@
 package populator
 
 import (
+	"context"
 	"fmt"
 	"io"
-	"sync"
-	"time"
 
 	"github.com/ihcsim/cbt-populator/pkg/apis/cbt.storage.k8s.io/v1alpha1"
-	"github.com/ihcsim/cbt-populator/pkg/csi/mock"
+	"github.com/ihcsim/cbt-populator/pkg/cbt"
+	"github.com/ihcsim/cbt-populator/pkg/cbt/provider/mock"
 	cbtclient "github.com/ihcsim/cbt-populator/pkg/generated/cbt.storage.k8s.io/clientset/versioned"
-	cbtinformers "github.com/ihcsim/cbt-populator/pkg/generated/cbt.storage.k8s.io/informers/externalversions"
-	datasource "github.com/ihcsim/cbt-populator/pkg/populator/data-source"
 	snapshotclient "github.com/kubernetes-csi/external-snapshotter/client/v6/clientset/versioned"
-	snapshotinformers "github.com/kubernetes-csi/external-snapshotter/client/v6/informers/externalversions"
-	"k8s.io/client-go/tools/cache"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
 )
 
@@ -21,139 +18,87 @@ import (
 // ChangedBlockRange object, identified by the ObjName and ObjNamespace
 // fields.
 type CBTPopulator struct {
-	W                       io.Writer
-	R                       io.Reader
-	cbtInformerFactory      cbtinformers.SharedInformerFactory
-	snapshotInformerFactory snapshotinformers.SharedInformerFactory
-	dataSource              datasource.DataSource
+	W              io.WriteCloser
+	R              io.ReadCloser
+	cbtClient      cbtclient.Interface
+	snapshotClient snapshotclient.Interface
+	provider       cbt.Provider
 }
 
 // New returns a new instance of CBTPopulator.
 func New(
 	cbtClient cbtclient.Interface,
-	snapshotClient snapshotclient.Interface,
-	resync time.Duration,
-	stop <-chan struct{}) *CBTPopulator {
+	snapshotClient snapshotclient.Interface) *CBTPopulator {
 
 	r, w := io.Pipe()
-	cbtInformerFactory, snapshotInformerFactory := initInformerFactories(cbtClient, snapshotClient, resync, stop)
 	return &CBTPopulator{
-		W:                       w,
-		R:                       r,
-		cbtInformerFactory:      cbtInformerFactory,
-		snapshotInformerFactory: snapshotInformerFactory,
-		dataSource:              &mock.Mock{},
+		W:              w,
+		R:              r,
+		cbtClient:      cbtClient,
+		snapshotClient: snapshotClient,
+		provider:       &mock.Mock{},
 	}
 }
 
 // Run starts the CBT data population.
-func (p *CBTPopulator) Run(objName, objNamespace string) error {
-	obj, err := p.cbtInformerFactory.Cbt().V1alpha1().ChangedBlockRanges().Lister().ChangedBlockRanges(objNamespace).Get(objName)
+func (p *CBTPopulator) Run(ctx context.Context, objName, objNamespace string) error {
+	opt := metav1.GetOptions{}
+	obj, err := p.cbtClient.CbtV1alpha1().ChangedBlockRanges(objNamespace).Get(ctx, objName, opt)
 	if err != nil {
 		return err
 	}
-	klog.Infof("found ChangedBlockRange: %s/%s", obj.GetNamespace(), obj.GetName())
+	klog.Infof("found changed block range: %s/%s", obj.GetNamespace(), obj.GetName())
 
-	from, err := p.snapshotInformerFactory.Snapshot().V1().VolumeSnapshots().Lister().VolumeSnapshots(objNamespace).Get(
-		obj.Spec.FromVolumeSnapshotName)
+	snapshotHandles, err := p.findSnapshotHandles(ctx, obj)
 	if err != nil {
 		return err
 	}
-	if from.Status == nil || from.Status.ReadyToUse == nil || !(*from.Status.ReadyToUse) {
-		return fmt.Errorf("VolumeSnapshot not ready: %s/%s", from.GetNamespace(), from.GetName())
-	}
 
-	to, err := p.snapshotInformerFactory.Snapshot().V1().VolumeSnapshots().Lister().VolumeSnapshots(objNamespace).Get(
-		obj.Spec.ToVolumeSnapshotName)
-	if err != nil {
-		return err
+	params := &cbt.Params{
+		FromSnapshotHandle: snapshotHandles[0],
+		ToSnapshotHandle:   snapshotHandles[1],
 	}
-	if to.Status == nil || to.Status.ReadyToUse == nil || !(*to.Status.ReadyToUse) {
-		return fmt.Errorf("VolumeSnapshot not ready: %s/%s", to.GetNamespace(), to.GetName())
-	}
-
-	fromVolumeContent, err := p.snapshotInformerFactory.Snapshot().V1().VolumeSnapshotContents().Lister().Get(
-		*from.Status.BoundVolumeSnapshotContentName)
-	if err != nil {
-		return err
-	}
-	if fromVolumeContent.Status == nil {
-		return fmt.Errorf("VolumeSnapshotContent not ready: %s", fromVolumeContent.GetName())
-	}
-
-	fromSnapshotHandle := fromVolumeContent.Status.SnapshotHandle
-	if fromSnapshotHandle == nil {
-		return fmt.Errorf("missing snapshot handle in VolumeSnapshotContent: %s", fromVolumeContent.GetName())
-	}
-
-	toVolumeContent, err := p.snapshotInformerFactory.Snapshot().V1().VolumeSnapshotContents().Lister().Get(
-		*to.Status.BoundVolumeSnapshotContentName)
-	if err != nil {
-		return err
-	}
-	if toVolumeContent.Status == nil {
-		return fmt.Errorf("VolumeSnapshotContent not ready: %s", toVolumeContent.GetName())
-	}
-
-	toSnapshotHandle := toVolumeContent.Status.SnapshotHandle
-	if toSnapshotHandle == nil {
-		return fmt.Errorf("missing snapshot handle in VolumeSnapshotContent: %s", toVolumeContent.GetName())
-	}
-
-	params := &datasource.Params{
-		FromSnapshotHandle: *fromSnapshotHandle,
-		ToSnapshotHandle:   *toSnapshotHandle,
-	}
-	return p.dataSource.FetchCBTs(params, p.W)
+	return p.provider.FetchCBTs(params, p.W)
 }
 
-func initInformerFactories(
-	cbtClient cbtclient.Interface,
-	snapshotClient snapshotclient.Interface,
-	resync time.Duration,
-	stop <-chan struct{}) (
-	cbtinformers.SharedInformerFactory,
-	snapshotinformers.SharedInformerFactory,
-) {
-
+func (p *CBTPopulator) findSnapshotHandles(ctx context.Context, obj *v1alpha1.ChangedBlockRange) ([]string, error) {
 	var (
-		cif = cbtinformers.NewSharedInformerFactoryWithOptions(cbtClient, resync)
-		sif = snapshotinformers.NewSharedInformerFactoryWithOptions(snapshotClient, resync)
+		namespace              = obj.GetNamespace()
+		fromVolumeSnapshotName = obj.Spec.FromVolumeSnapshotName
+		toVolumeSnapshotName   = obj.Spec.ToVolumeSnapshotName
+		opt                    = metav1.GetOptions{}
+		snapshotHandles        = []string{}
 	)
 
-	cif.Cbt().V1alpha1().ChangedBlockRanges().Informer().AddEventHandler(
-		cache.ResourceEventHandlerFuncs{
-			AddFunc: func(new interface{}) {
-				obj := new.(*v1alpha1.ChangedBlockRange)
-				klog.Infof("adding ChangedBlockRange: %s", obj.GetName())
-			},
-			UpdateFunc: func(old, new interface{}) {
-				obj := new.(*v1alpha1.ChangedBlockRange)
-				klog.Infof("update ChangedBlockRange: %s", obj.GetName())
-			},
-			DeleteFunc: func(old interface{}) {
-				obj := old.(*v1alpha1.ChangedBlockRange)
-				klog.Infof("deleting ChangedBlockRange: %s", obj.GetName())
-			},
-		})
+	for _, snapshotName := range []string{fromVolumeSnapshotName, toVolumeSnapshotName} {
+		klog.Infof("trying to find volume snapshot %s/%s", namespace, snapshotName)
+		volumeSnapshot, err := p.snapshotClient.SnapshotV1().VolumeSnapshots(namespace).Get(ctx, snapshotName, opt)
+		if err != nil {
+			return nil, err
+		}
 
-	var wg *sync.WaitGroup
+		if volumeSnapshot.Status == nil || volumeSnapshot.Status.ReadyToUse == nil || !(*volumeSnapshot.Status.ReadyToUse) {
+			return nil, fmt.Errorf("volume snapshot not ready: %s/%s", namespace, volumeSnapshot.GetName())
+		}
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		cif.Start(stop)
-		cif.WaitForCacheSync(stop)
-	}()
+		volumeContentName := *volumeSnapshot.Status.BoundVolumeSnapshotContentName
+		volumeContent, err := p.snapshotClient.SnapshotV1().VolumeSnapshotContents().Get(ctx, volumeContentName, opt)
+		if err != nil {
+			return nil, err
+		}
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		sif.Start(stop)
-		sif.WaitForCacheSync(stop)
-	}()
-	wg.Wait()
+		if volumeContent.Status == nil {
+			return nil, fmt.Errorf("volume snapshot content not ready: %s", volumeContent.GetName())
+		}
 
-	klog.Info("all informers ready")
-	return cif, sif
+		snapshotHandle := volumeContent.Status.SnapshotHandle
+		if snapshotHandle == nil {
+			return nil, fmt.Errorf("missing snapshot handle in volume snapshot content: %s", volumeContent.GetName())
+		}
+		klog.Infof("found volume snapshot %s/%s with snapshot handle %s", namespace, volumeSnapshot.GetName(), *snapshotHandle)
+
+		snapshotHandles = append(snapshotHandles, *snapshotHandle)
+	}
+
+	return snapshotHandles, nil
 }

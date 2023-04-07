@@ -1,0 +1,41 @@
+apiVersion: cbt.storage.k8s.io/v1alpha1
+kind: ChangedBlockRange
+metadata:
+  name: cbt-cbr
+spec:
+  fromVolumeSnapshotName: cbt-vs-from
+  toVolumeSnapshotName: cbt-vs-to
+  maxSizeInBytes: 42949672960
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cbt-pvc
+spec:
+  storageClassName: csi-hostpath-sc
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Mi
+  dataSourceRef:
+    apiGroup: cbt.storage.k8s.io
+    kind: ChangedBlockRange
+    name: cbt-cbr
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: cbt-pod 
+spec:
+  containers:
+  - name: data-replicator
+    image: debian:11-slim
+    command: ["sleep", "infinity"]
+    volumeMounts:
+    - mountPath: /data
+      name: data
+  volumes:
+  - name: data
+    persistentVolumeClaim:
+      claimName: cbt-pvc
