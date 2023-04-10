@@ -6,7 +6,7 @@ test:
 	go test -cover -race ./...
 
 lint:
-	golangci-lint run
+	golangci-lint run --timeout 5m
 
 .PHONY: codegen
 codegen:

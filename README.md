@@ -1,5 +1,7 @@
 # CBT Populator
 
+![pipeline](https://github.com/ihcsim/cbt-populator/actions/workflows/pipeline.yaml/badge.svg)
+
 CBT populator is a spike effort to build the CSI CBT service using a [volume
 populator][1]. The full description of the CSI CBT service is described under
 this [KEP][2].
