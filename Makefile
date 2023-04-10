@@ -5,6 +5,9 @@ POPULATOR_MAIN_PATH := ./cmd/cbt-populator
 test:
 	go test -cover -race ./...
 
+lint:
+	golangci-lint run
+
 .PHONY: codegen
 codegen:
 	./hack/update-codegen.sh
